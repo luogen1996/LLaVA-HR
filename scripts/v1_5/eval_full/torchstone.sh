@@ -2,7 +2,7 @@
 
 SPLIT="touchstone_20230831"
 MODEL_PATH=$1
-python -m llava.eval.model_vqa_torchstone \
+python -m llava_hr.eval.model_vqa_torchstone \
     --model-path $1 \
     --question-file ./playground/data/eval/torchstone/$SPLIT.tsv \
     --answers-file ./playground/data/eval/torchstone/$SPLIT/llava-v1.5-7b.jsonl \

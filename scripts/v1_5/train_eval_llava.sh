@@ -1,6 +1,6 @@
 #!/bin/bash
 
-deepspeed llava/train/train_mem.py \
+deepspeed llava_hr/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path /data/vicuna/vicuna-7b-v1.5 \
     --version plain \
@@ -35,7 +35,7 @@ deepspeed llava/train/train_mem.py \
     --report_to wandb
 
 
-deepspeed llava/train/train_mem.py \
+deepspeed llava_hr/train/train_mem.py \
     --deepspeed ./scripts/zero3.json \
     --model_name_or_path /data/vicuna/vicuna-7b-v1.5 \
     --version v1 \

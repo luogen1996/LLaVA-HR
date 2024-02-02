@@ -2,7 +2,7 @@
 
 SPLIT="mmbench_dev_cn_20231003"
 MODEL_PATH=$1
-python -m llava.eval.model_vqa_mmbench \
+python -m llava_hr.eval.model_vqa_mmbench \
     --model-path $1 \
     --question-file ./playground/data/eval/mmbench_cn/$SPLIT.tsv \
     --answers-file ./playground/data/eval/mmbench_cn/answers/$SPLIT/llava-v1.5-13b.jsonl \

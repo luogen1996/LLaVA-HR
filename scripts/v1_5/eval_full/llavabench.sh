@@ -1,6 +1,6 @@
 #!/bin/bash
 MODEL_PATH=$1
-python -m llava.eval.model_vqa \
+python -m llava_hr.eval.model_vqa \
     --model-path $MODEL_PATH \
     --question-file ./playground/data/eval/llava-bench-in-the-wild/questions.jsonl \
     --image-folder ./playground/data/eval/llava-bench-in-the-wild/images \
@@ -10,7 +10,7 @@ python -m llava.eval.model_vqa \
 
 mkdir -p playground/data/eval/llava-bench-in-the-wild/reviews
 
-python llava/eval/eval_gpt_review_bench.py \
+python llava_hr/eval/eval_gpt_review_bench.py \
     --question playground/data/eval/llava-bench-in-the-wild/questions.jsonl \
     --context playground/data/eval/llava-bench-in-the-wild/context.jsonl \
     --rule llava/eval/table/rule.json \
@@ -20,4 +20,4 @@ python llava/eval/eval_gpt_review_bench.py \
     --output \
         playground/data/eval/llava-bench-in-the-wild/reviews/llava-v1.5-13b.jsonl
 
-python llava/eval/summarize_gpt_review.py -f playground/data/eval/llava-bench-in-the-wild/reviews/llava-v1.5-13b.jsonl
+python llava_hr/eval/summarize_gpt_review.py -f playground/data/eval/llava-bench-in-the-wild/reviews/llava-v1.5-13b.jsonl

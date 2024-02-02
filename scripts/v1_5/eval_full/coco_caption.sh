@@ -7,7 +7,7 @@ CHUNKS=${#GPULIST[@]}
 SPLIT="llava_caption_mscoco_test"
 CKPT="llava-v1.5-7b"
 for IDX in $(seq 0 $((CHUNKS-1))); do
-    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava.eval.model_caption_loader \
+    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava_hr.eval.model_caption_loader \
         --model-path $MODEL_PATH \
         --question-file ./playground/data/eval/coco-cap/$SPLIT.jsonl \
         --image-folder ./playground/data/eval/coco-cap/val2014 \
@@ -30,6 +30,6 @@ for IDX in $(seq 0 $((CHUNKS-1))); do
     cat ./playground/data/eval/coco-cap/$SPLIT/$CKPT/${CHUNKS}_${IDX}.jsonl >> "$output_file"
 done
 
-python -m llava.eval.eval_caption \
+python -m llava_hr.eval.eval_caption \
     --annotation-file ./playground/data/eval/coco-cap/captions_test5k.json \
     --result-file ./playground/data/eval/coco-cap/$SPLIT/$CKPT/merge.jsonl

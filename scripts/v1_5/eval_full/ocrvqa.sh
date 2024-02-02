@@ -11,7 +11,7 @@ SPLIT="ocrvqa_test"
 OCRVQADIR="./playground/data/eval/ocrvqa/data"
 
 for IDX in $(seq 0 $((CHUNKS-1))); do
-    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava.eval.model_vqa_loader \
+    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava_hr.eval.model_vqa_loader \
         --model-path $MODEL_PATH \
         --question-file ./playground/data/eval/ocrvqa/$SPLIT.jsonl \
         --image-folder ./playground/data/ocr_vqa/images \
@@ -34,6 +34,6 @@ for IDX in $(seq 0 $((CHUNKS-1))); do
     cat ./playground/data/eval/ocrvqa/answers/$SPLIT/$CKPT/${CHUNKS}_${IDX}.jsonl >> "$output_file"
 done
 
-python -m llava.eval.eval_ocrvqa \
+python -m llava_hr.eval.eval_ocrvqa \
     --annotation-file ./playground/data/eval/ocrvqa/ocrvqa_test.jsonl \
     --result-file $output_file

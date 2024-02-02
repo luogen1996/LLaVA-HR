@@ -9,7 +9,7 @@ MODEL_PATH=$1
 CKPT="llava-v1.5-7b"
 
 for IDX in $(seq 0 $((CHUNKS-1))); do
-    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava.eval.model_vqa_loader \
+    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava_hr.eval.model_vqa_loader \
         --model-path $MODEL_PATH \
         --question-file ./playground/data/eval/seed_bench/llava-seed-bench.jsonl \
         --image-folder ./playground/data/eval/seed_bench \

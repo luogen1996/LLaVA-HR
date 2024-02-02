@@ -1,6 +1,6 @@
 #!/bin/bash
 MODEL_PATH=$1
-python -m llava.eval.model_vqa \
+python -m llava_hr.eval.model_vqa \
     --model-path $MODEL_PATH \
     --question-file ./playground/data/eval/mm-vet/llava-mm-vet.jsonl \
     --image-folder ./playground/data/eval/mm-vet/images \

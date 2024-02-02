@@ -7,7 +7,7 @@ CHUNKS=${#GPULIST[@]}
 SPLIT="llava_refcoco_mscoco_val"
 CKPT="llava-v1.5-7b"
 for IDX in $(seq 0 $((CHUNKS-1))); do
-    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava.eval.model_rec_loader \
+    CUDA_VISIBLE_DEVICES=${GPULIST[$IDX]} python -m llava_hr.eval.model_rec_loader \
         --model-path $MODEL_PATH \
         --question-file ./playground/data/eval/refcoco/$SPLIT.jsonl \
         --image-folder ./playground/data/eval/refcoco/train2014 \
@@ -30,6 +30,6 @@ for IDX in $(seq 0 $((CHUNKS-1))); do
     cat ./playground/data/eval/refcoco/$SPLIT/$CKPT/${CHUNKS}_${IDX}.jsonl >> "$output_file"
 done
 
-python -m llava.eval.eval_rec \
+python -m llava_hr.eval.eval_rec \
     --annotation-file ./playground/data/eval/refcoco/$SPLIT.jsonl \
     --result-file ./playground/data/eval/refcoco/$SPLIT/$CKPT/merge.jsonl
