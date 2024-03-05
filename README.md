@@ -6,7 +6,6 @@
 
 <h2 align="center"> <a href="https://arxiv.org/abs/xxx">Feast Your Eyes:  Mixture-of-Resolution Adaptation for Multimodal Large Language Models</a></h2>
 
-------
 
 This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR includes:
 
@@ -21,7 +20,7 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 
 ## 📣 News
 
-- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency. The  performance of LLaVA-HR greatly exceeds LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#model-zoo).
+- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency.  LLaVA-HR greatly outperforms LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#model-zoo).
 
 
 ## Table of Contents
