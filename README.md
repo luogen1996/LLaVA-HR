@@ -19,7 +19,7 @@
 > [**Feast Your Eyes:  Mixture-of-Resolution Adaptation for Multimodal Large Language Models**](https://arxiv.org/abs/xxx) <br>
 > Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji <br>[![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/xxx) <br>
 
-This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR includes:
+This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR include:
 
 - **High Image Resolutions**:  LLaVA-HR supports up to 1536 x 1536 image resolutions,  which boosts the performance of fine-grained vision-language tasks, such as TextVQA.
 - **Remarkable Efficiency**: LLaVA-HR maintains the similar training costs with LLaVA-1.5, *e.g.,* **~20 hours on 8 A100s**. Its inference speed is also fast as existing low-resolution MLLMs !  Check out [our paper]().
