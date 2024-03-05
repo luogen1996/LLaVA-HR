@@ -40,7 +40,7 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 - [Model Zoo](#model-zoo)
 - [Training](#training)
 - [Evaluation](#evaluation)
-- [Demo](#🤗demo)
+- [Demo](#-demo)
 
 ## Model Zoo
 | Version | Size | Res | Checkpoint | VQAv2 | GQA | OKVQA | OCRVQA | SQA | VizWiz | TextVQA | MME | POPE | SEED |  MM-Vet |
