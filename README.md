@@ -37,10 +37,10 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 
 ## Table of Contents
 
-- [Prerequisites](#prerequisites)
 - [Model Zoo](#model-zoo)
 - [Training](#training)
 - [Evaluation](#evaluation)
+- [Demo](#🤗demo)
 
 ## Model Zoo
 | Version | Size | Res | Checkpoint | VQAv2 | GQA | OKVQA | OCRVQA | SQA | VizWiz | TextVQA | MME | POPE | SEED |  MM-Vet |
@@ -107,7 +107,7 @@ Instruction tuning  takes around 16 hours for LLaVA-HR-7B on 8x A100s (80G).
 </details>
 
 ## Evaluation
-We follow  [LLaVA-v1.5](https://github.com/haotian-liu/LLaVA/tree/main) to conduct evaluations. you should download [eval.zip](https://drive.google.com/file/d/1atZSBBrAX54yYpxtVVW33zFvcnaHeFPy/view?usp=sharing) and unzip it to `./playground/data/eval`.  Besides, we further impelement the evaluation of coco-caption, rec, vizwiz,ocrvqa,okvqa and torchstone. Please refer to [more_eval.md] to prepare the data.   
+We follow  [LLaVA-v1.5](https://github.com/haotian-liu/LLaVA/tree/main) to conduct evaluations. you should download [eval.zip](https://drive.google.com/file/d/1atZSBBrAX54yYpxtVVW33zFvcnaHeFPy/view?usp=sharing) and unzip it to `./playground/data/eval`.  Besides, we further impelement the evaluation of coco-caption, rec, vizwiz,ocrvqa,okvqa and torchstone. Please refer to [more_eval.md](./doc/more_eval.md) to prepare the data.   
 
 Then, your can run our evaluation script `bash scripts/v1_5/eval.sh`. 
 
