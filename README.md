@@ -16,22 +16,22 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 - **Fair Comparison**: LLaVA-HR adopts the same training data and configurations with LLaVA-1.5,  which means that the performance gains all come from our mixture-of-resolution adaptation. We hope that LLaVA-HR can be a strong baseline for the community.
 
 <div  align="center">    
-<img src="./assets/fig1.png" width="95%">
+<img src="./assets/fig1.png" width="55%">
 </div>
 
 ## 📣 News
 
-- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency. The  performance of LLaVA-HR greatly exceeds LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#-model-zoo).
+- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency. The  performance of LLaVA-HR greatly exceeds LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#model zoo).
 
 
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Model Zoo](#model-zoo)
+- [Model Zoo](#model zoo)
 - [Training](#training)
 - [Evaluation](#evaluation)
 
-## Model-zoo
+## Model Zoo
 | Version | Size | Res | Checkpoint | VQAv2 | GQA | OKVQA | OCRVQA | SQA | VizWiz | TextVQA | MME | POPE | SEED |  MM-Vet |
 |----------|----------|-----------|-----------|---|---|---|---|---|---|---|---|---|---|---|
 | LLaVA-1.5 | 13B | 336 | [liuhaotian/llava-v1.5-13b](https://huggingface.co/liuhaotian/llava-v1.5-13b) | 80.0 | 63.3 | - | - | **71.6** | 53.6 | 61.3 | 1531.3 | 85.9 | 61.6 | 35.4 |
