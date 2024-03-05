@@ -16,7 +16,7 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 - **Fair Comparison**: LLaVA-HR adopts the same training data and configurations with LLaVA-1.5,  which means that the performance gains all come from our mixture-of-resolution adaptation. We hope that LLaVA-HR can be a strong baseline for the community.
 
 <div  align="center">    
-<img src="./assets/teaser-1.png" width="95%">
+<img src="./assets/fig1.png" width="95%">
 </div>
 
 ## 📣 News
