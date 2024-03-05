@@ -206,8 +206,8 @@ If you find our paper and code useful in your research, please consider giving a
 
 ```bibtex
 @article{luo2024feast,
-  title={MoE-LLaVA: Mixture of Experts for Large Vision-Language Models},
-  author={Lin, Bin and Tang, Zhenyu and Ye, Yang and Cui, Jiaxi and Zhu, Bin and Jin, Peng and Zhang, Junwu and Ning, Munan and Yuan, Li},
+  title={Feast Your Eyes: Mixture-of-Resolution Adaptation for Multimodal Large Language Models},
+  author={Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji},
   journal={arXiv preprint },
   year={2024}
 }
