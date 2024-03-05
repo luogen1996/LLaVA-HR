@@ -5,7 +5,10 @@
 <p>
 
 <h2 align="center"> <a href="https://arxiv.org/abs/xxx">LLaVA-HR: High-Resolution Large Language-Vision Assistant </a></h2>
-[![hf_space](https://img.shields.io/badge/🤗-Open%20In%20Spaces-blue.svg)](https://huggingface.co/favor123)
+
+<h5 align="center">
+    
+[![hf_space](https://img.shields.io/badge/🤗-Open%20In%20Spaces-blue.svg)]()
 [![hf_space](https://img.shields.io/badge/🤗-Paper%20In%20HF-red.svg)](https://huggingface.co/papers/XXX)
 [![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/xxx) 
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow)](https://github.com/luogen1996/LLaVA-HR/blob/main/LICENSE) 
@@ -16,8 +19,7 @@
 
 ✨Technical Report:
 > [**Feast Your Eyes:  Mixture-of-Resolution Adaptation for Multimodal Large Language Models**](https://arxiv.org/abs/xxx) <br>
-> Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji <br>
-[![github](https://img.shields.io/badge/-Github-black?logo=github)](https://github.com/luogen1996/LLaVA-HR)  [![github](https://img.shields.io/github/stars/luogen1996/LLaVA-HR.svg?style=social)](https://github.com/luogen1996/LLaVA-HR) [![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/xxx) <br>
+> Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji <br>[![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/xxx) <br>
 
 This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR includes:
 
