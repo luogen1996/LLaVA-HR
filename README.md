@@ -37,10 +37,33 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 
 ## Table of Contents
 
+- [Install](#install)
 - [Model Zoo](#model-zoo)
 - [Training](#training)
 - [Evaluation](#evaluation)
 - [Demo](#-demo)
+
+## Install
+
+1. Clone this repository and navigate to LLaVA-HR folder
+```bash
+git clone https://github.com/luogen1996/LLaVA-HR.git
+cd LLaVA-HR
+```
+
+2. Install Package
+```Shell
+conda create -n llava-hr python=3.10 -y
+conda activate llava-hr
+pip install --upgrade pip  # enable PEP 660 support
+pip install -e .
+```
+
+3. Install additional packages for training cases
+```
+pip install ninja
+pip install flash-attn --no-build-isolation
+```
 
 ## Model Zoo
 | Version | Size | Res | Checkpoint | VQAv2 | GQA | OKVQA | OCRVQA | SQA | VizWiz | TextVQA | MME | POPE | SEED |  MM-Vet |
