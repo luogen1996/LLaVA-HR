@@ -8,7 +8,7 @@
 
 <h5 align="center">
     
-[![hf_space](https://img.shields.io/badge/🤗-Open%20In%20Spaces-blue.svg)]()
+[![hf_space](https://img.shields.io/badge/🤗-Open%20In%20Spaces-blue.svg)](https://huggingface.co/favor123)
 [![hf_space](https://img.shields.io/badge/🤗-Paper%20In%20HF-red.svg)](https://huggingface.co/papers/XXX)
 [![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/xxx) 
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow)](https://github.com/luogen1996/LLaVA-HR/blob/main/LICENSE) 
