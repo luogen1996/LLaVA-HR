@@ -1,3 +1,7 @@
+<p align="center">
+    <img src="https://s11.ax1x.com/2023/12/28/piqvDMV.png" width="250" style="margin-bottom: 0.2;"/>
+<p>
+
 <h2 align="center">🌋🌋🌋 <a href="https://arxiv.org/abs/xxx">LLaVA-HR: High-Resolution Large Language-Vision Assistant </a></h2>
 
 <h5 align="center">
