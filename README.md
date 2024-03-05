@@ -21,13 +21,13 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 
 ## 📣 News
 
-- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency. The  performance of LLaVA-HR greatly exceeds LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#model zoo).
+- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency. The  performance of LLaVA-HR greatly exceeds LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#-model-zoo).
 
 
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Model Zoo](#model zoo)
+- [Model Zoo](#model-zoo)
 - [Training](#training)
 - [Evaluation](#evaluation)
 
