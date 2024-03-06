@@ -8,7 +8,7 @@
     
 [![hf_space](https://img.shields.io/badge/🤗-Open%20In%20Spaces-blue.svg)](https://huggingface.co/favor123)
 [![hf_space](https://img.shields.io/badge/🤗-Paper%20In%20HF-red.svg)](https://huggingface.co/papers/XXX)
-[![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.03003) 
+[![arXiv](https://img.shields.io/badge/Arxiv-2403.03003-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.03003) 
 [![License](https://img.shields.io/badge/License-Apache%202.0-yellow)](https://github.com/luogen1996/LLaVA-HR/blob/main/LICENSE) 
 [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fluogen1996%2FLLaVA-HR&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitor&edge_flat=false)](https://hits.seeyoufarm.com)
 [![GitHub issues](https://img.shields.io/github/issues/luogen1996/LLaVA-HR?color=critical&label=Issues)](https://github.com/luogen1996/LLaVA-HR/issues?q=is%3Aopen+is%3Aissue)
