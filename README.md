@@ -17,7 +17,7 @@
 
 ✨Technical Report:
 > [**Feast Your Eyes:  Mixture-of-Resolution Adaptation for Multimodal Large Language Models**](https://arxiv.org/abs/2403.03003) <br>
-> Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji <br>[![arXiv](https://img.shields.io/badge/Arxiv-xxx-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.03003) <br>
+> Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji <br>[![arXiv](https://img.shields.io/badge/Arxiv-2403.03003-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.03003) <br>
 
 This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR include:
 
