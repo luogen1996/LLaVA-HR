@@ -66,11 +66,11 @@ pip install flash-attn --no-build-isolation
 ```
 
 ## Model Zoo
-| Version | Size | Res | Checkpoint | VQAv2 | GQA | OKVQA | OCRVQA | SQA | VizWiz | TextVQA | MME | POPE | SEED |  MM-Vet |
+| Version | Size | Res | Checkpoint | VQAv2 | GQA |VizWiz |TextVQA|OKVQA | OCRVQA | SQA  | MME | POPE | SEED |  MM-Vet |
 |----------|----------|-----------|-----------|---|---|---|---|---|---|---|---|---|---|---|
-| LLaVA-1.5 | 13B | 336 | [liuhaotian/llava-v1.5-13b](https://huggingface.co/liuhaotian/llava-v1.5-13b) | 80.0 | 63.3 | - | - | **71.6** | 53.6 | 61.3 | 1531.3 | 85.9 | 61.6 | 35.4 |
-| LLaVA-HR | 7B | 1024 | [favor123/llava-hr-7b-sft-1024](https://huggingface.co/favor123/llava-hr-7b-sft-1024) | 81.9 | 64.2 | 58.9 | 68.4 | 65.1 | 48.7 | 67.1 | **1554.9** | 87.6 | 64.2 | 31.2 |
-| LLaVA-HR-X | 13B | 1024 | [favor123/llava-hr-13b-x-sft-1024](https://huggingface.co/favor123/llava-hr-13b-x-sft-1024) | **82.6** | **65.2** | **61.5** | **69.0** | 68.0 | **56.6** | **70.9** | 1487.3 | **88.0** | **65.3** | **35.5** |
+| LLaVA-1.5 | 13B | 336 | [liuhaotian/llava-v1.5-13b](https://huggingface.co/liuhaotian/llava-v1.5-13b) | 80.0 | 63.3 |53.6 | 61.3 | - | - | **71.6** |  1531.3 | 85.9 | 61.6 | 35.4 |
+| LLaVA-HR | 7B | 1024 | [favor123/llava-hr-7b-sft-1024](https://huggingface.co/favor123/llava-hr-7b-sft-1024) | 81.9 | 64.2 | 48.7 | 67.1  | 58.9 | 68.4 | 65.1 | **1554.9** | 87.6 | 64.2 | 31.2 |
+| LLaVA-HR-X | 13B | 1024 | [favor123/llava-hr-13b-x-sft-1024](https://huggingface.co/favor123/llava-hr-13b-x-sft-1024) | **82.6** | **65.2**| **56.6** | **70.9** | **61.5** | **69.0** | 68.0  | 1487.3 | **88.0** | **65.3** | **35.5** |
 
 ## Training
 Our training pipeline and datasets  are directly borrowed from [LLaVA-v1.5](https://github.com/haotian-liu/LLaVA). The training consists of two stages: 
