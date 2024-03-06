@@ -130,7 +130,7 @@ Instruction tuning  takes around 16 hours for LLaVA-HR-7B on 8x A100s (80G).
 </details>
 
 ## Evaluation
-We follow  [LLaVA-v1.5](https://github.com/haotian-liu/LLaVA/tree/main) to conduct evaluations. you should download [eval.zip](https://drive.google.com/file/d/1atZSBBrAX54yYpxtVVW33zFvcnaHeFPy/view?usp=sharing) and unzip it to `./playground/data/eval`.  Besides, we further impelement the evaluation of coco-caption, rec, vizwiz,ocrvqa,okvqa and torchstone. Please refer to [Evaluation.md](./Evaluation.md) to prepare the data.   
+We follow  [LLaVA-v1.5](https://github.com/haotian-liu/LLaVA/tree/main) to conduct evaluations. you should download [eval.zip](https://drive.google.com/file/d/1atZSBBrAX54yYpxtVVW33zFvcnaHeFPy/view?usp=sharing) and unzip it to `./playground/data/eval`.  Besides, we further impelement the evaluation of coco-caption, refcoco, vizwiz,ocrvqa and okvqa. Please refer to [Evaluation.md](./Evaluation.md) to prepare the data.   
 
 Then, your can run our evaluation script `bash scripts/v1_5/eval.sh`. 
 
