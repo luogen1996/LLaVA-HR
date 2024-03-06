@@ -22,7 +22,7 @@
 This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR include:
 
 - **High Image Resolutions**:  LLaVA-HR supports up to 1536 x 1536 image resolutions,  which boosts the performance of fine-grained vision-language tasks, such as TextVQA.
-- **Remarkable Efficiency**: LLaVA-HR maintains the similar training costs with LLaVA-1.5, *e.g.,* **~20 hours on 8 A100s**. Its inference speed is also fast as existing low-resolution MLLMs !  Check out [our paper]().
+- **Remarkable Efficiency**: LLaVA-HR maintains the similar training costs with LLaVA-1.5, *e.g.,* **~20 hours on 8 A100s**. Its inference speed is also fast as existing low-resolution MLLMs !  Check out [our paper](https://arxiv.org/abs/2403.03003).
 - **Strong Performance**: LLaVA-HR outperforms existing MLLMs on multiple benchmarks, *e.g.,* 82.6 on VQAv2.  **LLaVA-HR  is comparable to LLaVA-NexT** using the training data of LLaVA-1.5 ! Check out our [model zoo](#model-zoo).
 - **Fair Comparison**: LLaVA-HR adopts the same training data and configurations with LLaVA-1.5,  which means that the performance gains all come from our mixture-of-resolution adaptation. We hope that LLaVA-HR can be a strong baseline for the community.
 
