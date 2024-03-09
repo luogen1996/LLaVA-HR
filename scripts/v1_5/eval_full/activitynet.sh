@@ -34,6 +34,8 @@ for IDX in $(seq 0 $((CHUNKS-1))); do
     cat ./playground/data/eval/$DATA_BASE/answers/$SPLIT/$CKPT/${CHUNKS}_${IDX}.jsonl >> "$output_file"
 done
 
+rm -r ./playground/data/eval/$DATA_BASE/gpt
+
 python -m llava_hr.eval.eval_video_qa \
     --pred_path $output_file \
     --output_dir ./playground/data/eval/$DATA_BASE/gpt \
