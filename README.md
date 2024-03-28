@@ -4,9 +4,6 @@
 
 <h2 align="center">🌋🌋 <a href="https://arxiv.org/abs/xxx">LLaVA-HR: High-Resolution Large Language-Vision Assistant </a>🌋🌋</h2>
 
-<h5 align="center">
-    
-
 
 This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR include:
 
