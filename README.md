@@ -6,33 +6,19 @@
 
 <h5 align="center">
     
-[![hf_space](https://img.shields.io/badge/🤗-Open%20In%20Spaces-blue.svg)](https://huggingface.co/favor123)
-[![hf_space](https://img.shields.io/badge/🤗-Paper%20In%20HF-red.svg)](https://huggingface.co/papers/XXX)
-[![arXiv](https://img.shields.io/badge/Arxiv-2403.03003-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.03003) 
-[![License](https://img.shields.io/badge/License-Apache%202.0-yellow)](https://github.com/luogen1996/LLaVA-HR/blob/main/LICENSE) 
-[![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fluogen1996%2FLLaVA-HR&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Visitor&edge_flat=false)](https://hits.seeyoufarm.com)
-[![GitHub issues](https://img.shields.io/github/issues/luogen1996/LLaVA-HR?color=critical&label=Issues)](https://github.com/luogen1996/LLaVA-HR/issues?q=is%3Aopen+is%3Aissue)
-[![GitHub closed issues](https://img.shields.io/github/issues-closed/luogen1996/LLaVA-HR?color=success&label=Issues)](https://github.com/luogen1996/LLaVA-HR/issues?q=is%3Aissue+is%3Aclosed)  <br>
-</h5>
 
-✨Technical Report:
-> [**Feast Your Eyes:  Mixture-of-Resolution Adaptation for Multimodal Large Language Models**](https://arxiv.org/abs/2403.03003) <br>
-> Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji <br>[![arXiv](https://img.shields.io/badge/Arxiv-2403.03003-b31b1b.svg?logo=arXiv)](https://arxiv.org/abs/2403.03003) <br>
 
 This repository contains the implementation of LLaVA-HR,  a strong and efficient MLLM powered by our mixture-of-resolution adaptation.  The features of LLaVA-HR include:
 
 - **High Image Resolutions**:  LLaVA-HR supports up to 1536 x 1536 image resolutions,  which boosts the performance of fine-grained vision-language tasks, such as TextVQA.
-- **Remarkable Efficiency**: LLaVA-HR maintains the similar training costs with LLaVA-1.5, *e.g.,* **~20 hours on 8 A100s**. Its inference speed is also fast as existing low-resolution MLLMs !  Check out [our paper](https://arxiv.org/abs/2403.03003).
-- **Strong Performance**: LLaVA-HR outperforms existing MLLMs on multiple benchmarks, *e.g.,* 82.6 on VQAv2.  **LLaVA-HR  is comparable to LLaVA-NexT** using the training data of LLaVA-1.5 ! Check out our [model zoo](#model-zoo).
+- **Remarkable Efficiency**: LLaVA-HR maintains the similar training costs with LLaVA-1.5, *e.g.,* **~20 hours on 8 A100s**. Its inference speed is also fast as existing low-resolution MLLMs ! 
+- **Strong Performance**: LLaVA-HR outperforms existing MLLMs on multiple benchmarks, *e.g.,* 82.6 on VQAv2.  **LLaVA-HR  is comparable to LLaVA-NexT** using the training data of LLaVA-1.5 ! 
 - **Fair Comparison**: LLaVA-HR adopts the same training data and configurations with LLaVA-1.5,  which means that the performance gains all come from our mixture-of-resolution adaptation. We hope that LLaVA-HR can be a strong baseline for the community.
 
 <div  align="center">    
 <img src="./assets/fig1.png" width="55%">
 </div>
 
-## 📣 News
-
-- **[2024.03.06]**  🔥🔥🔥 We release LLaVA-HR, a high-resolution MLLM with strong performance and remarkable efficiency.  LLaVA-HR greatly outperforms LLaVA-1.5 on multiple benchmarks, checking our [model zoo](#model-zoo).
 
 
 ## Table of Contents
@@ -46,10 +32,7 @@ This repository contains the implementation of LLaVA-HR,  a strong and efficient
 ## Install
 
 1. Clone this repository and navigate to LLaVA-HR folder
-```bash
-git clone https://github.com/luogen1996/LLaVA-HR.git
-cd LLaVA-HR
-```
+
 
 2. Install Package
 ```Shell
@@ -69,8 +52,8 @@ pip install flash-attn --no-build-isolation
 | Version | Size | Res | Checkpoint | VQAv2 | GQA |VizWiz |TextVQA|OKVQA | OCRVQA | SQA  | MME | POPE | SEED |  MM-Vet |
 |----------|----------|-----------|-----------|---|---|---|---|---|---|---|---|---|---|---|
 | LLaVA-1.5 | 13B | 336 | [liuhaotian/llava-v1.5-13b](https://huggingface.co/liuhaotian/llava-v1.5-13b) | 80.0 | 63.3 |53.6 | 61.3 | - | - | **71.6** |  1531.3 | 85.9 | 61.6 | 35.4 |
-| LLaVA-HR | 7B | 1024 | [favor123/llava-hr-7b-sft-1024](https://huggingface.co/favor123/llava-hr-7b-sft-1024) | 81.9 | 64.2 | 48.7 | 67.1  | 58.9 | 68.4 | 65.1 | **1554.9** | 87.6 | 64.2 | 31.2 |
-| LLaVA-HR-X | 13B | 1024 | [favor123/llava-hr-13b-x-sft-1024](https://huggingface.co/favor123/llava-hr-13b-x-sft-1024) | **82.6** | **65.2**| **56.6** | **70.9** | **61.5** | **69.0** | 68.0  | 1487.3 | **88.0** | **65.3** | **35.5** |
+| LLaVA-HR | 7B | 1024 | coming soon | 81.9 | 64.2 | 48.7 | 67.1  | 58.9 | 68.4 | 65.1 | **1554.9** | 87.6 | 64.2 | 31.2 |
+| LLaVA-HR-X | 13B | 1024 | coming soon| **82.6** | **65.2**| **56.6** | **70.9** | **61.5** | **69.0** | 68.0  | 1487.3 | **88.0** | **65.3** | **35.5** |
 
 ## Training
 Our training pipeline and datasets  are directly borrowed from [LLaVA-v1.5](https://github.com/haotian-liu/LLaVA). The training consists of two stages: 
@@ -193,27 +176,3 @@ python -m llava.serve.cli \
 ## 👍 Acknowledgement
 
 - [LLaVA](https://github.com/haotian-liu/LLaVA) The codebase we built upon, and our baseline LLaVA-1.5 already has strong multimodal capabilities.
-
-## 🔒 License
-
-- The majority of this project is released under the Apache 2.0 license as found in the [LICENSE](https://github.com/luogen1996/LLaVA-HR?tab=Apache-2.0-1-ov-file) file.
-- The service is a research preview intended for non-commercial use only, subject to the model [License](https://github.com/facebookresearch/llama/blob/main/MODEL_CARD.md) of LLaMA and [Terms of Use](https://openai.com/policies/terms-of-use) of the data generated by OpenAI. Please contact us if you find any potential violation.
-
-
-## ✏️ Citation
-
-If you find our paper and code useful in your research, please consider giving a star ⭐️ and citation 📝.
-
-```bibtex
-@article{luo2024feast,
-  title={Feast Your Eyes: Mixture-of-Resolution Adaptation for Multimodal Large Language Models},
-  author={Gen Luo, Yiyi Zhou, Yuxin Zhang, Xiawu Zheng, Xiaoshuai Sun, Rongrong Ji},
-  journal={arXiv preprint arXiv:2403.03003},
-  year={2024}
-}
-```
-
-## ✨ Star History
-
-[![Star History](https://api.star-history.com/svg?repos=luogen1996/LLaVA-HR&type=Date)](https://star-history.com/#luogen1996/LLaVA-HR&Date)
-

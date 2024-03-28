@@ -6,7 +6,7 @@ Currently, we mostly utilize the official toolkit or server for the evaluation.
 
 ## Evaluate on Custom Datasets
 
-You can evaluate LLaVA on your custom datasets by converting your dataset to LLaVA's jsonl format, and evaluate using [`model_vqa.py`](https://github.com/luogen1996/LLaVA-HR/tree/main/llava_hr/eval/model_vqa.py).
+You can evaluate LLaVA on your custom datasets by converting your dataset to LLaVA's jsonl format, and evaluate using `model_vqa.py`.
 
 Below we provide a general guideline for evaluating datasets with some common formats.
 
