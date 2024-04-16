@@ -9,7 +9,7 @@ from llava_hr.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_I
 from llava_hr.conversation import conv_templates, SeparatorStyle
 from llava_hr.model.builder import load_pretrained_model
 from llava_hr.utils import disable_torch_init
-from llava_hr.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+from llava_hr.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria,process_images
 
 from PIL import Image
 import math
@@ -47,8 +47,7 @@ def eval_model(args):
         if 'image' in line:
             image_file = line["image"]
             image = Image.open(os.path.join(args.image_folder, image_file))
-            image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-            images = image_tensor.unsqueeze(0).half().cuda()
+            images = process_images([image], image_processor, model.config).half().cuda()
             if getattr(model.config, 'mm_use_im_start_end', False):
                 qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + qs
             else:
