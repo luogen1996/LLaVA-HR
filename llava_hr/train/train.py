@@ -37,7 +37,7 @@ from llava_hr.mm_utils import tokenizer_image_token
 from llava_hr.model.apply_lavin import set_lavin
 from PIL import Image
 import random
-
+Image.MAX_IMAGE_PIXELS=2300000000
 local_rank = None
 
 
