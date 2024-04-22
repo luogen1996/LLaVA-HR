@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SPLIT="mmbench_dev_20230712"
+SPLIT="mmbench_dev_en_20231003"
 MODEL_PATH=$1
 python -m llava_hr.eval.model_vqa_mmbench \
     --model-path $1 \
