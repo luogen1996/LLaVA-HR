@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
         if pred_text in args.options:
             answer = pred_text
-        elif len(pred_text) >= 3 and pred_text[0] in args.options and pred_text[1:3] == ". ":
+        elif len(pred_text) >= 3 and pred_text[0] in args.options:
             answer = pred_text[0]
         else:
             pattern = re.compile(r'The answer is ([A-Z]).')

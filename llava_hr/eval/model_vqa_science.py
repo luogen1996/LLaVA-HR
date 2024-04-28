@@ -77,7 +77,7 @@ def eval_model(args):
                 images=images,
                 do_sample=True if args.temperature > 0 else False,
                 temperature=args.temperature,
-                max_new_tokens=1024,
+                max_new_tokens=64,
                 use_cache=True,
                 stopping_criteria=stopping_criteria,
             )

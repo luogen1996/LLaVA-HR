@@ -73,7 +73,7 @@ def eval_model(args):
                 top_p=args.top_p,
                 num_beams=args.num_beams,
                 # no_repeat_ngram_size=3,
-                max_new_tokens=1024,
+                max_new_tokens=100,
                 use_cache=True)
 
         input_token_len = input_ids.shape[1]
