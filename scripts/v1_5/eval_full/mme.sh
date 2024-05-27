@@ -1,6 +1,6 @@
 #!/bin/bash
 MODEL_PATH=$1
-python -m llava_hr.eval.model_vqa_loader \
+python -m llava_hr.eval.model_vqa_loader_mme \
     --model-path $MODEL_PATH \
     --question-file ./playground/data/eval/MME/llava_mme.jsonl \
     --image-folder ./playground/data/eval/MME/MME_Benchmark_release_version \

@@ -6,7 +6,8 @@ python -m llava_hr.eval.model_vqa \
     --image-folder ./playground/data/eval/mm-vet/images \
     --answers-file ./playground/data/eval/mm-vet/answers/llava-v1.5-7b.jsonl \
     --temperature 0 \
-    --conv-mode vicuna_v1
+    --conv-mode vicuna_v1 \
+    --max_new_tokens 2048
 
 mkdir -p ./playground/data/eval/mm-vet/results
 
