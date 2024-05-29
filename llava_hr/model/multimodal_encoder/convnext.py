@@ -382,6 +382,7 @@ class ConvNeXt(nn.Module):
                 norm_layer=norm_layer,
                 act_layer='gelu',
             )
+
         named_apply(partial(_init_weights, head_init_scale=head_init_scale), self)
 
     @torch.jit.ignore
@@ -424,11 +425,13 @@ class ConvNeXt(nn.Module):
 
 def _init_weights(module, name=None, head_init_scale=1.0):
     if isinstance(module, nn.Conv2d):
-        trunc_normal_(module.weight, std=.02)
+        #fix for zero3
+        nn.init.zeros_(module.weight)
         if module.bias is not None:
             nn.init.zeros_(module.bias)
     elif isinstance(module, nn.Linear):
-        trunc_normal_(module.weight, std=.02)
+        # fix for zero3
+        nn.init.zeros_(module.weight)
         nn.init.zeros_(module.bias)
         if name and 'head.' in name:
             module.weight.data.mul_(head_init_scale)

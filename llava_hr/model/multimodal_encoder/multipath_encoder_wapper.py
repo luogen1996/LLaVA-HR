@@ -11,11 +11,23 @@ import math
 
 
 class MultiPathAlignModule(nn.Module):
-    def __init__(self, fast_vision_dim, slow_vision_dim):
+    def __init__(self, fast_vision_dim, slow_vision_dim,stride=1):
         super().__init__()
 
         self.fast_proj = nn.Linear(fast_vision_dim, fast_vision_dim)
         self.slow_proj = nn.Linear(slow_vision_dim, fast_vision_dim)
+        self.stride=stride
+        if stride>1:
+            self.shuffle_proj=nn.Linear(fast_vision_dim*stride*stride,fast_vision_dim)
+
+    def pixel_shuffle(self, x, scale_factor=0.5):
+        n, l, c = x.size()
+        w=h=int(math.sqrt(l))
+        x = x.view(n, int(h * scale_factor), int(1 / scale_factor), int(w * scale_factor), int(c / scale_factor))
+        x = x.permute(0, 1,3,2,4).contiguous()
+        x = x.view(n, int(h * scale_factor)* int(w * scale_factor),
+                   int(c / (scale_factor * scale_factor)))
+        return x
 
     def forward(self, fast_feat, slow_feat):
         if slow_feat.ndim == 4:
@@ -40,6 +52,10 @@ class MultiPathAlignModule(nn.Module):
             slow_feat = F.avg_pool2d(slow_feat, src_size // dst_size, src_size // dst_size)
             slow_feat = slow_feat.view(b, c, -1).transpose(1, 2)
         patch_feat = self.fast_proj(fast_feat) + self.slow_proj(slow_feat)
+
+        if self.stride>1:
+            patch_feat=self.pixel_shuffle(patch_feat,1./self.stride)
+            patch_feat=self.shuffle_proj(patch_feat)
         return patch_feat
 
 
@@ -128,6 +144,7 @@ class MultiPathCLIPVisionTower(nn.Module):
         self.splits = self.select_layer // 100 if self.select_layer > 100 else 1
         self.enable_adapter= not args.freeze_vision
         self.image_size=args.input_image_size
+        self.stride=2
 
 
         if self.enable_adapter:
@@ -137,7 +154,8 @@ class MultiPathCLIPVisionTower(nn.Module):
                                                       for i in range(3)])
 
         self.align_stages = nn.ModuleList([MultiPathAlignModule(self.fast_vision_tower.hidden_size,
-                                                                self.slow_vision_tower.hidden_size
+                                                                self.slow_vision_tower.hidden_size,
+                                                                stride=self.stride
                                                                 )
                                            ])
 
@@ -252,7 +270,7 @@ class MultiPathCLIPVisionTower(nn.Module):
 
     @property
     def num_patches_per_side(self):
-        return max(self.image_size // 32,12)
+        return max(self.image_size // (32*self.stride),12//self.stride)
 
     @property
     def num_patches(self):

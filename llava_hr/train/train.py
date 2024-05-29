@@ -33,10 +33,13 @@ from llava_hr.train.llava_trainer import LLaVATrainer
 
 from llava_hr import conversation as conversation_lib
 from llava_hr.model import *
-from llava_hr.mm_utils import tokenizer_image_token,process_anyres_image,preprocess_video
+from llava_hr.mm_utils import tokenizer_image_token, get_model_name_from_path,process_anyres_image,preprocess_video
 from llava_hr.model.apply_lavin import set_lavin
 from PIL import Image
 import random
+from llava_hr.model.builder import load_pretrained_model
+
+from llava_hr.utils import disable_torch_init
 Image.MAX_IMAGE_PIXELS=230000000000
 local_rank = None
 
@@ -204,7 +207,7 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
                                    output_dir: str):
     """Collects the state dict and dump to disk."""
 
-    if getattr(trainer.args, "tune_mm_mlp_adapter", False):
+    if getattr(trainer.args, "tune_mm_mlp_adapter", False) and getattr(trainer.args, "freeze_vision", True):
         # Only save Adapter
         keys_to_match = ['mm_projector','align_stages']
         if getattr(trainer.args, "use_im_start_end", False):
@@ -224,7 +227,12 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer,
             else:
                 torch.save(weight_to_save, os.path.join(output_dir, f'mm_projector.bin'))
         return
-
+    if getattr(trainer.args, "tune_mm_mlp_adapter", False) and not getattr(trainer.args, "freeze_vision", True):
+        setattr(trainer.model.config, "delay_load", False)
+        torch.cuda.synchronize()
+        # trainer.model.config.save_pretrained(output_dir)
+        trainer.tokenizer.save_pretrained(output_dir)
+        trainer.model.save_pretrained(output_dir)
     if trainer.deepspeed:
         setattr(trainer.model.config, "delay_load", False)
         torch.cuda.synchronize()
@@ -1025,6 +1033,12 @@ def train():
                 cache_dir=training_args.cache_dir,
                 **bnb_model_from_pretrained_args
             )
+        elif 'llava' in model_args.model_name_or_path:
+            model_path = os.path.expanduser(model_args.model_name_or_path)
+            model_name = get_model_name_from_path(model_path)
+            disable_torch_init()
+            tokenizer, model, image_processor, context_len = load_pretrained_model(model_path, None, model_name,
+                                                                                   low_cpu_mem_usage=False)
         else:
             model = LlavaLlamaForCausalLM.from_pretrained(
                 model_args.model_name_or_path,
@@ -1107,7 +1121,7 @@ def train():
         else:
             conversation_lib.default_conversation = conversation_lib.conv_templates["vicuna_v1"]
 
-    if model_args.vision_tower is not None:
+    if model_args.vision_tower is not None and not ('llava' in model_args.model_name_or_path):
         model.get_model().initialize_vision_modules(
             model_args=model_args,
             fsdp=training_args.fsdp
@@ -1119,7 +1133,7 @@ def train():
         data_args.image_processor = vision_tower.image_processor
         data_args.is_multimodal = True
 
-        model.config.freeze_vision=model_args.freeze_vision
+        training_args.freeze_vision=model.config.freeze_vision=model_args.freeze_vision
         model.config.input_image_size=model_args.input_image_size
         model.config.is_multipath_encoder=model_args.is_multipath_encoder
         model.config.vision_tower_slow=model_args.vision_tower_slow
@@ -1130,6 +1144,10 @@ def train():
         if model_args.tune_mm_mlp_adapter:
             model.requires_grad_(False)
             for p in model.get_model().mm_projector.parameters():
+                p.requires_grad = True
+
+        if not model_args.freeze_vision:
+            for p in vision_tower.parameters():
                 p.requires_grad = True
 
         model.config.freeze_mm_mlp_adapter = training_args.freeze_mm_mlp_adapter
@@ -1157,6 +1175,13 @@ def train():
         training_args.use_im_start_end = model_args.mm_use_im_start_end
         model.config.mm_use_im_patch_token = model_args.mm_use_im_patch_token
         model.initialize_vision_tokenizer(model_args, tokenizer=tokenizer)
+
+
+    #set multimodal setup
+    data_args.image_processor = model.get_vision_tower().image_processor
+    data_args.is_multimodal = True
+    training_args.use_im_start_end = model_args.mm_use_im_start_end
+    data_args.mm_use_im_start_end=model_args.mm_use_im_start_end
 
     # set lavin
     # data_args.lavin_enable=training_args.lavin_enable
