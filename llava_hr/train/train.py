@@ -33,7 +33,7 @@ from llava_hr.train.llava_trainer import LLaVATrainer
 
 from llava_hr import conversation as conversation_lib
 from llava_hr.model import *
-from llava_hr.mm_utils import tokenizer_image_token
+from llava_hr.mm_utils import tokenizer_image_token,process_anyres_image,preprocess_video
 from llava_hr.model.apply_lavin import set_lavin
 from PIL import Image
 import random
@@ -60,6 +60,7 @@ class ModelArguments:
     mm_projector_type: Optional[str] = field(default='linear')
     mm_use_im_start_end: bool = field(default=False)
     mm_use_im_patch_token: bool = field(default=True)
+    mm_patch_merge_type: Optional[str] = field(default='flat')
     mm_vision_select_feature: Optional[str] = field(default="patch")
     is_multipath_encoder: bool = field(default=False)
     vision_tower_slow: Optional[str] = field(default='convnext_large_mlp.clip_laion2b_ft_320')
@@ -75,6 +76,7 @@ class DataArguments:
     image_folder: Optional[str] = field(default=None)
     image_aspect_ratio: str = 'square'
     image_grid_pinpoints: Optional[str] = field(default=None)
+    video_frame: int = field(default=4)
 
 
 @dataclass
@@ -864,6 +866,7 @@ class LazySupervisedDataset(Dataset):
             image_folder = self.data_args.image_folder
             processor = self.data_args.image_processor
             image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
+            image_size=image.size
             if self.data_args.image_aspect_ratio == 'pad':
                 def expand2square(pil_img, background_color):
                     width, height = pil_img.size
@@ -880,15 +883,27 @@ class LazySupervisedDataset(Dataset):
 
                 image = expand2square(image, tuple(int(x * 255) for x in processor.image_mean))
                 image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
+            elif self.data_args.image_aspect_ratio == 'anyres':
+                image = process_anyres_image(image, processor, self.data_args.image_grid_pinpoints)
             else:
                 image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-
             sources = preprocess_robust(
                 copy.deepcopy([e["conversations"] for e in sources]),
                 self.data_args)
             # print(sources)
             sources = preprocess_multimodal(
                 copy.deepcopy(sources),
+                self.data_args)
+        elif 'video' in sources[0]:
+            # mm_patch_merge_type = flat
+            image_file = self.list_data_dict[i]['video']
+            image_folder = self.data_args.image_folder
+            processor = self.data_args.image_processor
+            image, image_size = preprocess_video(processor, os.path.join(image_folder, image_file),
+                                                 num_segments=self.data_args.video_frame,
+                                                 image_aspect_ratio=self.data_args.image_aspect_ratio)
+            sources = preprocess_multimodal(
+                copy.deepcopy([e["conversations"] for e in sources]),
                 self.data_args)
         else:
             sources = copy.deepcopy([e["conversations"] for e in sources])
@@ -913,13 +928,15 @@ class LazySupervisedDataset(Dataset):
             data_dict['labels'] = torch.cat(
                 [data_dict['labels'][:1], torch.tensor([IGNORE_INDEX], dtype=torch.long), data_dict['labels'][1:]], 0)
 
-        # image exist in the data
-        if 'image' in self.list_data_dict[i]:
+            # image exist in the data
+        if 'image' in self.list_data_dict[i] or 'video' in self.list_data_dict[i]:
             data_dict['image'] = image
+            data_dict['image_size'] = image_size
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
             crop_size = self.data_args.image_processor.crop_size
             data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
+            data_dict['image_size'] = (crop_size['width'], crop_size['height'])
         return data_dict
 
 
@@ -949,6 +966,8 @@ class DataCollatorForSupervisedDataset(object):
 
         if 'image' in instances[0]:
             images = [instance['image'] for instance in instances]
+            image_sizes = [instance['image_size'] for instance in instances]
+            batch['image_sizes'] = image_sizes
             if all(x is not None and x.shape == images[0].shape for x in images):
                 batch['images'] = torch.stack(images)
             else:
@@ -1106,7 +1125,7 @@ def train():
         model.config.vision_tower_slow=model_args.vision_tower_slow
         model.config.image_aspect_ratio = data_args.image_aspect_ratio
         model.config.image_grid_pinpoints = data_args.image_grid_pinpoints
-
+        model.config.video_frame= data_args.video_frame
         model.config.tune_mm_mlp_adapter = training_args.tune_mm_mlp_adapter = model_args.tune_mm_mlp_adapter
         if model_args.tune_mm_mlp_adapter:
             model.requires_grad_(False)

@@ -47,6 +47,7 @@ def eval_model(args):
         if 'image' in line:
             image_file = line["image"]
             image = Image.open(os.path.join(args.image_folder, image_file))
+            image_sizes = [image.size]
             images = process_images([image], image_processor, model.config).half().cuda()
             if getattr(model.config, 'mm_use_im_start_end', False):
                 qs = DEFAULT_IM_START_TOKEN + DEFAULT_IMAGE_TOKEN + DEFAULT_IM_END_TOKEN + '\n' + qs
@@ -55,6 +56,7 @@ def eval_model(args):
             cur_prompt = '<image>' + '\n' + cur_prompt
         else:
             images = None
+            image_sizes = None
 
         if args.single_pred_prompt:
             qs = qs + '\n' + "Answer with the option's letter from the given choices directly."
@@ -75,6 +77,7 @@ def eval_model(args):
             output_ids = model.generate(
                 input_ids,
                 images=images,
+                image_sizes=image_sizes,
                 do_sample=True if args.temperature > 0 else False,
                 temperature=args.temperature,
                 max_new_tokens=64,

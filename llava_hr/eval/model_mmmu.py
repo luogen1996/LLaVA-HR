@@ -43,6 +43,7 @@ def run_model(args, samples, model, call_model_engine_fn=None, tokenizer=None, p
                     output_ids = model.generate(
                         input_ids,
                         images=sample['image'].unsqueeze(0).half().cuda(),
+                        image_sizes=[sample['image_size']],
                         do_sample=True if args.temperature > 0 else False,
                         temperature=args.temperature,
                         top_p=args.top_p,

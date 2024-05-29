@@ -251,5 +251,9 @@ class MultiPathCLIPVisionTower(nn.Module):
         return self.fast_vision_tower.hidden_size
 
     @property
+    def num_patches_per_side(self):
+        return max(self.image_size // 32,12)
+
+    @property
     def num_patches(self):
         return self.fast_vision_tower.num_patches

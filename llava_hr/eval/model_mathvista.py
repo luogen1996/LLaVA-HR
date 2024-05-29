@@ -84,6 +84,7 @@ def get_response(model,image_path, query,args):
         output_ids = model.generate(
             input_ids,
             images=image_tensor.unsqueeze(0).half().cuda(),
+            image_sizes=[image.size],
             do_sample=True if args.temperature > 0 else False,
             temperature=args.temperature,
             top_p=args.top_p,
