@@ -107,7 +107,7 @@ def eval_model(args):
 
             image_tensor = process_images([image], image_processor, model.config)[0]
             # image_tensor = image_processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-
+            # print(image_tensor.shape)
             stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
 
             with torch.inference_mode():

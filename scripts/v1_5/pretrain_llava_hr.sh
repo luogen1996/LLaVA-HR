@@ -3,8 +3,8 @@ deepspeed llava_hr/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path /data/vicuna/vicuna-7b-v1.5 \
     --version plain \
-    --data_path /data/data/blip_laion_cc_sbu_558k.json \
-    --image_folder /data/data/images \
+    --data_path ./playground/data/mini_gemini_data/Mini-Gemini-Pretrain/minigemini_pretrain_filter_v2_filter_v2_filter_lowres.json \
+    --image_folder ./playground/data/mini_gemini_data \
     --vision_tower openai/clip-vit-large-patch14-336 \
     --vision_tower_slow convnext_large_mlp.clip_laion2b_ft_320 \
     --mm_projector_type mlp2x_gelu \
@@ -13,7 +13,7 @@ deepspeed llava_hr/train/train_mem.py \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir ./checkpoints/llava-hr-7b-pretrain-384 \
+    --output_dir ./checkpoints/llava-hr-7b-pretrain-384-lowres-v2 \
     --num_train_epochs 1 \
     --per_device_train_batch_size 32 \
     --per_device_eval_batch_size 4 \

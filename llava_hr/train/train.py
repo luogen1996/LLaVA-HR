@@ -33,7 +33,7 @@ from llava_hr.train.llava_trainer import LLaVATrainer
 
 from llava_hr import conversation as conversation_lib
 from llava_hr.model import *
-from llava_hr.mm_utils import tokenizer_image_token, get_model_name_from_path,process_anyres_image,preprocess_video
+from llava_hr.mm_utils import tokenizer_image_token, get_model_name_from_path,process_anyres_image,preprocess_video,dynamic_preprocess
 from llava_hr.model.apply_lavin import set_lavin
 from PIL import Image
 import random
@@ -124,7 +124,7 @@ class TrainingArguments(transformers.TrainingArguments):
     lavin_scale: float = 1.
     lavin_t: float = 10.
     pretrain_lavin_adapter: str=None
-
+    mm_projector_lr: Optional[float] = None
 
 def maybe_zero_3(param, ignore_status=False, name=None):
     from deepspeed import zero
@@ -892,7 +892,7 @@ class LazySupervisedDataset(Dataset):
                 image = expand2square(image, tuple(int(x * 255) for x in processor.image_mean))
                 image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
             elif self.data_args.image_aspect_ratio == 'anyres':
-                image = process_anyres_image(image, processor, self.data_args.image_grid_pinpoints)
+                image =process_anyres_image(image, processor, self.data_args.image_grid_pinpoints)
             else:
                 image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
             sources = preprocess_robust(
@@ -1052,7 +1052,7 @@ def train():
             **bnb_model_from_pretrained_args
         )
     model.config.use_cache = False
-
+    model.config.mm_projector_lr = training_args.mm_projector_lr
     if model_args.freeze_backbone:
         model.model.requires_grad_(False)
 
@@ -1182,6 +1182,7 @@ def train():
     data_args.is_multimodal = True
     training_args.use_im_start_end = model_args.mm_use_im_start_end
     data_args.mm_use_im_start_end=model_args.mm_use_im_start_end
+    model.config.model_name_or_path = model_args.model_name_or_path
 
     # set lavin
     # data_args.lavin_enable=training_args.lavin_enable

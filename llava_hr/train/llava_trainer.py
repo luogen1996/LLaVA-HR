@@ -5,11 +5,16 @@ from torch.utils.data import Sampler
 
 from transformers import Trainer
 from transformers.trainer import (
+    is_sagemaker_mp_enabled,
+    get_parameter_names,
     has_length,
+    ALL_LAYERNORM_LAYERS,
+    logger
 )
 from typing import List, Optional
+import torch.nn as nn
 
-
+import json
 def maybe_zero_3(param, ignore_status=False, name=None):
     from deepspeed import zero
     from deepspeed.runtime.zero.partition_parameters import ZeroParamStatus
@@ -128,6 +133,85 @@ class LengthGroupedSampler(Sampler):
             indices = get_length_grouped_indices(self.lengths, self.batch_size, self.world_size, generator=self.generator)
         return iter(indices)
 
+def get_num_layer_for_convnext(var_name):
+    """
+    Divide [3, 3, 27, 3] layers into 12 groups; each group is three
+    consecutive blocks, including possible neighboring downsample layers;
+    adapted from https://github.com/microsoft/unilm/blob/master/beit/optim_factory.py
+    """
+    num_max_layer = 12
+    if 'downsample_layers' in var_name:
+        stage_id = int(var_name.split('stages.')[0])
+        if stage_id == 0:
+            layer_id = 0
+        elif stage_id == 1 or stage_id == 2:
+            layer_id = stage_id + 1
+        elif stage_id == 3:
+            layer_id = 12
+        return layer_id
+
+    elif 'stages' in var_name:
+        stage_id = int(var_name.split('stages.')[0])
+        block_id = int(var_name.split('blocks.')[0])
+        if stage_id == 0 or stage_id == 1:
+            layer_id = stage_id + 1
+        elif stage_id == 2:
+            layer_id = 3 + block_id // 3
+        elif stage_id == 3:
+            layer_id = 12
+        return layer_id
+    else:
+        return num_max_layer + 1
+
+def get_num_layer_for_vit_and_convnext(var_name):
+    if 'fast_vision_tower' in var_name:
+        if 'embeddings.' in var_name:
+            return 0
+        if 'layers.' in var_name:
+            var_name = var_name.split('layers.')[-1]
+            layer_id = int(var_name.split('.')[0])
+            return layer_id + 1
+    if 'slow_vision_tower' in var_name:
+        return get_num_layer_for_convnext(var_name)
+    return 0
+
+def param_classification(name):
+    if 'slow_vision_tower' in name:
+        return 'convnext'
+    elif 'fast_vision_tower' in name:
+        return 'vit'
+    else:
+        return 'other'
+
+def get_num_layer_for_vit_and_convnext_single(var_name,depths):
+    if 'fast_vision_tower' in var_name:
+        if 'embeddings.' in var_name:
+            return 0
+        if 'layers.' in var_name:
+            var_name = var_name.split('layers.')[-1]
+            layer_id = int(var_name.split('.')[0])
+            return layer_id + 1
+    if 'slow_vision_tower' in var_name:
+        return get_num_layer_for_convnext_single(var_name,depths)
+    return 0
+
+def get_num_layer_for_convnext_single(var_name, depths=[3, 4, 30, 3]):
+    """
+    Each layer is assigned distinctive layer ids
+    """
+    if 'downsample' in var_name:
+        stage_id = int(var_name.split('stages.')[-1].split('.')[0])
+        layer_id = sum(depths[:stage_id]) + 1
+        return layer_id
+
+    elif 'stages' in var_name:
+        stage_id = int(var_name.split('stages.')[-1].split('.')[0])
+        block_id = int(var_name.split('blocks.')[-1].split('.')[0])
+        layer_id = sum(depths[:stage_id]) + block_id + 1
+        return layer_id
+
+    else:
+        return sum(depths) + 1
 
 class LLaVATrainer(Trainer):
 
@@ -147,6 +231,175 @@ class LLaVATrainer(Trainer):
         else:
             return super()._get_train_sampler()
 
+    # def create_optimizer(self):
+    #     """
+    #     Setup the optimizer.
+    #
+    #     We provide a reasonable default that works well. If you want to use something else, you can pass a tuple in the
+    #     Trainer's init through `optimizers`, or subclass and override this method in a subclass.
+    #     """
+    #     opt_model = self.model_wrapped if is_sagemaker_mp_enabled() else self.model
+    #
+    #     parameter_groups = {}
+    #     #need to fix
+    #     vit_num_layers = opt_model.model.vision_tower.fast_vision_tower.num_layers
+    #     convnext_num_layers = opt_model.model.vision_tower.slow_vision_tower.num_layers+1
+    #     print('vit_num_layers:', vit_num_layers)
+    #     print('convnext_num_layers:', convnext_num_layers)
+    #
+    #     vit_layer_decay_rate = float(os.getenv('VIT_LAYER_DECAY_RATE', 1.0))
+    #     convnext_layer_decay_rate = float(os.getenv('CONVNEXT_LAYER_DECAY_RATE', 1.0))
+    #     print('vit_layer_decay_rate:', vit_layer_decay_rate)
+    #     print('convnext_layer_decay_rate:', convnext_layer_decay_rate)
+    #
+    #     for name, param in opt_model.named_parameters():
+    #         if not param.requires_grad:
+    #             continue  # frozen weights
+    #         if len(param.shape) == 1 or name.endswith('.bias'):
+    #             group_name = 'no_decay'
+    #             this_weight_decay = 0.
+    #         else:
+    #             group_name = 'decay'
+    #             this_weight_decay = self.args.weight_decay
+    #
+    #         cls = param_classification(name)
+    #         # if convnext_num_layers==13: #convnext-l
+    #         #     layer_id = get_num_layer_for_vit_and_convnext(name)
+    #         # else:
+    #         depths=[3, 3, 27, 3] if convnext_num_layers==37 else [3, 4, 30, 3]
+    #         layer_id = get_num_layer_for_vit_and_convnext_single(name,depths=depths)
+    #         group_name = '%s_layer_%d_%s' % (cls, layer_id, group_name)
+    #         if group_name not in parameter_groups:
+    #             if cls == 'vit':
+    #                 scale = vit_layer_decay_rate ** (vit_num_layers - layer_id + 1)
+    #             elif cls == 'convnext':
+    #                 scale = convnext_layer_decay_rate ** (convnext_num_layers - layer_id + 1)
+    #             else:
+    #                 scale = 1.0
+    #             scale = min(1.0, scale)
+    #             parameter_groups[group_name] = {
+    #                 'weight_decay': this_weight_decay,
+    #                 'params': [],
+    #                 'param_names': [],
+    #                 'lr_scale': scale,
+    #                 'group_name': group_name,
+    #                 'lr': scale * self.args.learning_rate,
+    #             }
+    #         parameter_groups[group_name]['params'].append(param)
+    #         parameter_groups[group_name]['param_names'].append(name)
+    #
+    #         rank = torch.distributed.get_rank()
+    #         if rank == 0:
+    #             to_display = {}
+    #             for key in parameter_groups:
+    #                 to_display[key] = {
+    #                     'param_names': parameter_groups[key]['param_names'],
+    #                     'lr_scale': parameter_groups[key]['lr_scale'],
+    #                     'lr': parameter_groups[key]['lr'],
+    #                     'weight_decay': parameter_groups[key]['weight_decay'],
+    #                 }
+    #             print('Param groups = %s' % json.dumps(to_display, indent=2))
+    #
+    #     optimizer_grouped_parameters = list(parameter_groups.values())
+    #     optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(self.args)
+    #
+    #     self.optimizer = optimizer_cls(optimizer_grouped_parameters, **optimizer_kwargs)
+    #     if optimizer_cls.__name__ == 'Adam8bit':
+    #         import bitsandbytes
+    #
+    #         manager = bitsandbytes.optim.GlobalOptimManager.get_instance()
+    #
+    #         skipped = 0
+    #         for module in opt_model.modules():
+    #             if isinstance(module, nn.Embedding):
+    #                 skipped += sum({p.data_ptr(): p.numel() for p in module.parameters()}.values())
+    #                 logger.info(f'skipped {module}: {skipped / 2 ** 20}M params')
+    #                 manager.register_module_override(module, 'weight', {'optim_bits': 32})
+    #                 logger.debug(f'bitsandbytes: will optimize {module} in fp32')
+    #         logger.info(f'skipped: {skipped / 2 ** 20}M params')
+    #
+    #     if is_sagemaker_mp_enabled():
+    #         import smdistributed.modelparallel.torch as smp
+    #         self.optimizer = smp.DistributedOptimizer(self.optimizer)
+    def create_optimizer(self):
+        """
+        Setup the optimizer.
+
+        We provide a reasonable default that works well. If you want to use something else, you can pass a tuple in the
+        Trainer's init through `optimizers`, or subclass and override this method in a subclass.
+        """
+        if is_sagemaker_mp_enabled():
+            return super().create_optimizer()
+
+        opt_model = self.model
+
+        if self.optimizer is None:
+            decay_parameters = get_parameter_names(opt_model, ALL_LAYERNORM_LAYERS)
+            decay_parameters = [name for name in decay_parameters if "bias" not in name]
+            if self.args.mm_projector_lr is not None:
+                projector_parameters = [name for name, _ in opt_model.named_parameters() if "mm_projector" in name or "align_stages" in name]
+                optimizer_grouped_parameters = [
+                    {
+                        "params": [
+                            p for n, p in opt_model.named_parameters() if (n in decay_parameters and n not in projector_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": self.args.weight_decay,
+                    },
+                    {
+                        "params": [
+                            p for n, p in opt_model.named_parameters() if (n not in decay_parameters and n not in projector_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": 0.0,
+                    },
+                    {
+                        "params": [
+                            p for n, p in opt_model.named_parameters() if (n in decay_parameters and n in projector_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": self.args.weight_decay,
+                        "lr": self.args.mm_projector_lr,
+                    },
+                    {
+                        "params": [
+                            p for n, p in opt_model.named_parameters() if (n not in decay_parameters and n in projector_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": 0.0,
+                        "lr": self.args.mm_projector_lr,
+                    },
+                ]
+            else:
+                optimizer_grouped_parameters = [
+                    {
+                        "params": [
+                            p for n, p in opt_model.named_parameters() if (n in decay_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": self.args.weight_decay,
+                    },
+                    {
+                        "params": [
+                            p for n, p in opt_model.named_parameters() if (n not in decay_parameters and p.requires_grad)
+                        ],
+                        "weight_decay": 0.0,
+                    },
+                ]
+
+            optimizer_cls, optimizer_kwargs = Trainer.get_optimizer_cls_and_kwargs(self.args)
+
+            self.optimizer = optimizer_cls(optimizer_grouped_parameters, **optimizer_kwargs)
+            if optimizer_cls.__name__ == "Adam8bit":
+                import bitsandbytes
+
+                manager = bitsandbytes.optim.GlobalOptimManager.get_instance()
+
+                skipped = 0
+                for module in opt_model.modules():
+                    if isinstance(module, nn.Embedding):
+                        skipped += sum({p.data_ptr(): p.numel() for p in module.parameters()}.values())
+                        logger.info(f"skipped {module}: {skipped/2**20}M params")
+                        manager.register_module_override(module, "weight", {"optim_bits": 32})
+                        logger.debug(f"bitsandbytes: will optimize {module} in fp32")
+                logger.info(f"skipped: {skipped/2**20}M params")
+
+        return self.optimizer
     def _save_checkpoint(self, model, trial, metrics=None):
         if getattr(self.args, 'tune_mm_mlp_adapter', False):
             from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR

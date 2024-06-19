@@ -60,7 +60,7 @@ class MultiPathAlignModule(nn.Module):
 
 
 class S2FStitchAlignModuleV2(nn.Module):
-    def __init__(self, fast_vision_dim, slow_vision_dim, zero_init=True):
+    def __init__(self, fast_vision_dim, slow_vision_dim, zero_init=True,init=True):
         super().__init__()
 
         self.slow_conv = nn.Conv2d(slow_vision_dim, slow_vision_dim, 1)
@@ -74,18 +74,19 @@ class S2FStitchAlignModuleV2(nn.Module):
             nn.GELU(),
             nn.Linear(fast_vision_dim//2, 1) )
 
-        nn.init.xavier_uniform_(self.slow_conv.weight)
-        nn.init.xavier_uniform_(self.fast_conv.weight)
-        nn.init.zeros_(self.slow_conv.bias)
-        nn.init.zeros_(self.fast_conv.bias)
-        if zero_init:
-            nn.init.zeros_(self.slow_proj.weight)
-            nn.init.zeros_(self.fast_proj.weight)
-        else:
-            nn.init.xavier_uniform_(self.slow_proj.weight)
-            nn.init.xavier_uniform_(self.fast_proj.weight)
-        nn.init.zeros_(self.slow_proj.bias)
-        nn.init.zeros_(self.fast_proj.bias)
+        if init:
+            nn.init.xavier_uniform_(self.slow_conv.weight)
+            nn.init.xavier_uniform_(self.fast_conv.weight)
+            nn.init.zeros_(self.slow_conv.bias)
+            nn.init.zeros_(self.fast_conv.bias)
+            if zero_init:
+                nn.init.zeros_(self.slow_proj.weight)
+                nn.init.zeros_(self.fast_proj.weight)
+            else:
+                nn.init.xavier_uniform_(self.slow_proj.weight)
+                nn.init.xavier_uniform_(self.fast_proj.weight)
+            nn.init.zeros_(self.slow_proj.bias)
+            nn.init.zeros_(self.fast_proj.bias)
 
     def src2dst_align(self, src_feat, dst_feat):
         dst_size = int(math.sqrt(dst_feat.shape[1]))
@@ -145,12 +146,13 @@ class MultiPathCLIPVisionTower(nn.Module):
         self.enable_adapter= not args.freeze_vision
         self.image_size=args.input_image_size
         self.stride=2
-
+        self.enable_pretrain =(not args.tune_mm_mlp_adapter) and  ('llava' not in args._name_or_path)
 
         if self.enable_adapter:
             self.align_stages_latent = nn.ModuleList([S2FStitchAlignModuleV2(self.fast_vision_tower.hidden_size,
                                                                              self.slow_vision_tower.hidden_size,
-                                                                             True)
+                                                                             True,
+                                                                init= self.enable_pretrain)
                                                       for i in range(3)])
 
         self.align_stages = nn.ModuleList([MultiPathAlignModule(self.fast_vision_tower.hidden_size,

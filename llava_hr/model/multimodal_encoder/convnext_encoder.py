@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 from timm import create_model
 from transformers import CLIPImageProcessor
-from .convnext import convnext_base_clip,convnext_large_mlp,convnext_xxlarge
+from .convnext import convnext_base_clip,convnext_large_mlp,convnext_xxlarge,checkpoint_filter_fn
 from torch.utils.checkpoint import checkpoint
-
-
+import deepspeed
+from transformers.deepspeed import deepspeed_config, is_deepspeed_zero3_enabled
 
 cfg={
     "crop_size": 256,
@@ -37,16 +37,30 @@ class ConvNextVisionTower(nn.Module):
         self.vision_tower_name = vision_tower
         self.select_layer = args.mm_vision_select_layer
         self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')
+        self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')
+        # 0401 fix for fine-tune backbone
+        self.enable_pretrain = (not args.tune_mm_mlp_adapter) and  ('llava' not in args._name_or_path)
 
         self.load_model()
 
     def load_model(self):
         self.image_processor = CLIPImageProcessor(**cfg)
+
         if 'xxlarge' in self.vision_tower_name:
-            self.vision_tower = convnext_xxlarge(self.vision_tower_name)
+            if self.enable_pretrain:
+                self.vision_tower = convnext_xxlarge(self.vision_tower_name)
+            else:
+                self.vision_tower = convnext_xxlarge()
+                #need a configuration to write load_path
+                # self.load_checkpoint(self.vision_tower,'./checkpoints/convnext_xxlarge/open_clip_pytorch_model.bin')
             setattr(self.vision_tower, 'hidden_size', 3072)
         else:
-            self.vision_tower = convnext_large_mlp(self.vision_tower_name)
+            if self.enable_pretrain:
+                self.vision_tower = convnext_large_mlp(self.vision_tower_name)
+            else:
+                self.vision_tower = convnext_large_mlp()
+                # need a configuration to write load_path
+                # self.load_checkpoint(self.vision_tower, './checkpoints/convnext_large/open_clip_pytorch_model.bin')
             setattr(self.vision_tower, 'hidden_size', 1536)
         if self.freeze_vision:
             self.vision_tower.requires_grad_(False)
@@ -64,6 +78,44 @@ class ConvNextVisionTower(nn.Module):
 
         self.is_loaded = True
 
+    # modified function from open_clip to support zero3 stage
+    def load_checkpoint(self,model, checkpoint_path, strict=True):
+        state_dict = torch.load(checkpoint_path)
+        state_dict=checkpoint_filter_fn(model,state_dict)
+        if is_deepspeed_zero3_enabled():
+
+            error_msgs = []
+
+            def load(module: nn.Module, state_dict, prefix=""):
+                metadata = None
+
+                local_metadata = {} if metadata is None else metadata.get(prefix[:-1], {})
+                args = (state_dict, prefix, local_metadata, True, [], [], error_msgs)
+                # Parameters of module and children will start with prefix. We can exit early if there are none in this
+                # state_dict
+                if len([key for key in state_dict if key.startswith(prefix)]) > 0:
+                    if is_deepspeed_zero3_enabled():
+                        # In sharded models, each shard has only part of the full state_dict, so only gather
+                        # parameters that are in the current state_dict.
+                        named_parameters = dict(module.named_parameters(prefix=prefix[:-1], recurse=False))
+                        params_to_gather = [named_parameters[k] for k in state_dict.keys() if k in named_parameters]
+                        if len(params_to_gather) > 0:
+                            # because zero3 puts placeholders in model params, this context
+                            # manager gathers (unpartitions) the params of the current layer, then loads from
+                            # the state dict and then re-partitions them again
+                            with deepspeed.zero.GatheredParameters(params_to_gather, modifier_rank=0):
+                                if torch.distributed.get_rank() == 0:
+                                    module._load_from_state_dict(*args)
+                    else:
+                        module._load_from_state_dict(*args)
+
+                for name, child in module._modules.items():
+                    if child is not None:
+                        load(child, state_dict, prefix + name + ".")
+
+            load(model, state_dict)
+            incompatible_keys = []
+        return incompatible_keys
     def feature_select(self, image_forward_outs):
 
         if self.select_layer>100:
@@ -127,7 +179,7 @@ class ConvNextVisionTower(nn.Module):
     @property
     def num_layers(self):
         # as constant
-        return 4
+        return 40 if 'xxlarge' in self.vision_tower_name else 36 ## use for layer decay
     @property
     def hidden_size(self):
         return self.vision_tower.hidden_size

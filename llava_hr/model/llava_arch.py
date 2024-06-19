@@ -39,9 +39,7 @@ class LlavaMetaModel:
             self.vision_tower = build_vision_tower(config, delay_load=delay_load)
             self.mm_projector = build_vision_projector(config)
             if 'unpad' in getattr(config, 'mm_patch_merge_type', ''):
-                self.image_newline = torch.Tensor(
-                    torch.zeros(config.hidden_size, dtype=self.dtype)
-                )
+                self.image_newline =  torch.zeros(config.hidden_size, dtype=self.dtype)
     def get_vision_tower(self):
         vision_tower = getattr(self, 'vision_tower', None)
         if type(vision_tower) is list:
@@ -75,9 +73,8 @@ class LlavaMetaModel:
         self.mm_projector = build_vision_projector(self.config)
         if 'unpad' in mm_patch_merge_type:
             embed_std = 1 / torch.sqrt(torch.tensor(self.config.hidden_size, dtype=self.dtype))
-            self.image_newline = torch.Tensor(
-                torch.zeros(self.config.hidden_size, dtype=self.dtype) * embed_std
-            )
+            self.image_newline = torch.zeros(self.config.hidden_size, dtype=self.dtype) * embed_std
+
         if pretrain_mm_mlp_adapter is not None:
             mm_projector_weights = torch.load(pretrain_mm_mlp_adapter, map_location='cpu')
             def get_w(weights, keyword):
@@ -148,6 +145,7 @@ class LlavaMetaForCausalLM(ABC):
                 images = [x.unsqueeze(0) if x.ndim == 3 else x for x in images]
             concat_images = torch.cat([image for image in images], dim=0)
             image_features = self.encode_images(concat_images)
+            # print(image_features[0].dtype, self.model.image_newline.dtype)
             split_sizes = [image.shape[0] for image in images]
             image_features = torch.split(image_features, split_sizes, dim=0)
             mm_patch_merge_type = getattr(self.config, 'mm_patch_merge_type', 'flat')
@@ -173,20 +171,21 @@ class LlavaMetaForCausalLM(ABC):
                             image_feature = unpad_image(image_feature, image_sizes[image_idx])
                             image_feature = torch.cat((
                                 image_feature,
-                                self.model.image_newline[:, None, None].expand(*image_feature.shape[:-1], 1).to(image_feature.device)
+                                self.model.image_newline[:, None, None].expand(*image_feature.shape[:-1], 1).to(image_feature.device,dtype=image_feature.dtype)
                             ), dim=-1)
                             image_feature = image_feature.flatten(1, 2).transpose(0, 1)
                         else:
                             image_feature = image_feature.permute(0, 2, 1, 3, 4).contiguous()
                             image_feature = image_feature.flatten(0, 3)
-                        image_feature = torch.cat((base_image_feature, image_feature), dim=0)
                         # print(image_feature.shape)
+                        # print(base_image_feature.shape)
+                        image_feature = torch.cat((base_image_feature, image_feature), dim=0)
                     else:
                         image_feature = image_feature[0]
                         if 'unpad' in mm_patch_merge_type:
                             image_feature = torch.cat((
                                 image_feature,
-                                self.model.image_newline[None].to(image_feature.device)
+                                self.model.image_newline[None].to(image_feature.device,dtype=image_feature.dtype)
                             ), dim=0)
                     new_image_features.append(image_feature)
                 image_features = new_image_features
@@ -194,7 +193,8 @@ class LlavaMetaForCausalLM(ABC):
                 raise ValueError(f"Unexpected mm_patch_merge_type: {self.config.mm_patch_merge_type}")
         else:
             image_features = self.encode_images(images)
-
+        # print(image_features[0].shape)
+        # print(image_features[0].dtype,self.model.image_newline.dtype)
         new_input_embeds = []
         new_labels = [] if labels is not None else None
         cur_image_idx = 0
