@@ -862,89 +862,93 @@ class LazySupervisedDataset(Dataset):
         return length_list
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
-        sources = self.list_data_dict[i]
+        try:
+            sources = self.list_data_dict[i]
+            modality_token = TEXT_TOKEN
+            if isinstance(i, int):
+                sources = [sources]
+            assert len(sources) == 1, "Don't know why it is wrapped to a list"  # FIXME
+            if 'image' in sources[0]:
+                modality_token = VISION_TOKEN
+                image_file = self.list_data_dict[i]['image']
+                image_folder = self.data_args.image_folder
+                processor = self.data_args.image_processor
+                image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
+                image_size=image.size
+                if self.data_args.image_aspect_ratio == 'pad':
+                    def expand2square(pil_img, background_color):
+                        width, height = pil_img.size
+                        if width == height:
+                            return pil_img
+                        elif width > height:
+                            result = Image.new(pil_img.mode, (width, width), background_color)
+                            result.paste(pil_img, (0, (width - height) // 2))
+                            return result
+                        else:
+                            result = Image.new(pil_img.mode, (height, height), background_color)
+                            result.paste(pil_img, ((height - width) // 2, 0))
+                            return result
 
-        modality_token = TEXT_TOKEN
-        if isinstance(i, int):
-            sources = [sources]
-        assert len(sources) == 1, "Don't know why it is wrapped to a list"  # FIXME
-        if 'image' in sources[0]:
-            modality_token = VISION_TOKEN
-            image_file = self.list_data_dict[i]['image']
-            image_folder = self.data_args.image_folder
-            processor = self.data_args.image_processor
-            image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
-            image_size=image.size
-            if self.data_args.image_aspect_ratio == 'pad':
-                def expand2square(pil_img, background_color):
-                    width, height = pil_img.size
-                    if width == height:
-                        return pil_img
-                    elif width > height:
-                        result = Image.new(pil_img.mode, (width, width), background_color)
-                        result.paste(pil_img, (0, (width - height) // 2))
-                        return result
-                    else:
-                        result = Image.new(pil_img.mode, (height, height), background_color)
-                        result.paste(pil_img, ((height - width) // 2, 0))
-                        return result
-
-                image = expand2square(image, tuple(int(x * 255) for x in processor.image_mean))
-                image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-            elif self.data_args.image_aspect_ratio == 'anyres':
-                image =process_anyres_image(image, processor, self.data_args.image_grid_pinpoints)
+                    image = expand2square(image, tuple(int(x * 255) for x in processor.image_mean))
+                    image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
+                elif self.data_args.image_aspect_ratio == 'anyres':
+                    image =process_anyres_image(image, processor, self.data_args.image_grid_pinpoints)
+                else:
+                    image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
+                sources = preprocess_robust(
+                    copy.deepcopy([e["conversations"] for e in sources]),
+                    self.data_args)
+                # print(sources)
+                sources = preprocess_multimodal(
+                    copy.deepcopy(sources),
+                    self.data_args)
+            elif 'video' in sources[0]:
+                # mm_patch_merge_type = flat
+                image_file = self.list_data_dict[i]['video']
+                image_folder = self.data_args.image_folder
+                processor = self.data_args.image_processor
+                image, image_size = preprocess_video(processor, os.path.join(image_folder, image_file),
+                                                     num_segments=self.data_args.video_frame,
+                                                     image_aspect_ratio=self.data_args.image_aspect_ratio)
+                sources = preprocess_multimodal(
+                    copy.deepcopy([e["conversations"] for e in sources]),
+                    self.data_args)
             else:
-                image = processor.preprocess(image, return_tensors='pt')['pixel_values'][0]
-            sources = preprocess_robust(
-                copy.deepcopy([e["conversations"] for e in sources]),
-                self.data_args)
+                sources = copy.deepcopy([e["conversations"] for e in sources])
+            # for debug
             # print(sources)
-            sources = preprocess_multimodal(
-                copy.deepcopy(sources),
-                self.data_args)
-        elif 'video' in sources[0]:
-            # mm_patch_merge_type = flat
-            image_file = self.list_data_dict[i]['video']
-            image_folder = self.data_args.image_folder
-            processor = self.data_args.image_processor
-            image, image_size = preprocess_video(processor, os.path.join(image_folder, image_file),
-                                                 num_segments=self.data_args.video_frame,
-                                                 image_aspect_ratio=self.data_args.image_aspect_ratio)
-            sources = preprocess_multimodal(
-                copy.deepcopy([e["conversations"] for e in sources]),
-                self.data_args)
-        else:
-            sources = copy.deepcopy([e["conversations"] for e in sources])
-        # for debug
-        # print(sources)
-        data_dict = preprocess(
-            sources,
-            self.tokenizer,
-            has_image=('image' in self.list_data_dict[i]))
+            data_dict = preprocess(
+                sources,
+                self.tokenizer,
+                has_image=('image' in self.list_data_dict[i]))
 
-        if isinstance(i, int):
-            data_dict = dict(input_ids=data_dict["input_ids"][0],
-                             labels=data_dict["labels"][0])
-        # if modality_token in TEXT_TOKEN:
-        #     print(modality_token)
-        # if not ('image' in self.list_data_dict[i]):
-        #     print(modality_token)
-        if self.data_args.lavin_enable:
-            data_dict['input_ids'] = torch.cat([data_dict['input_ids'][:1],
-                                                torch.tensor([self.tokenizer.convert_tokens_to_ids(modality_token)],
-                                                             dtype=torch.long), data_dict['input_ids'][1:]], 0)
-            data_dict['labels'] = torch.cat(
-                [data_dict['labels'][:1], torch.tensor([IGNORE_INDEX], dtype=torch.long), data_dict['labels'][1:]], 0)
+            if isinstance(i, int):
+                data_dict = dict(input_ids=data_dict["input_ids"][0],
+                                 labels=data_dict["labels"][0])
+            # if modality_token in TEXT_TOKEN:
+            #     print(modality_token)
+            # if not ('image' in self.list_data_dict[i]):
+            #     print(modality_token)
+            if self.data_args.lavin_enable:
+                data_dict['input_ids'] = torch.cat([data_dict['input_ids'][:1],
+                                                    torch.tensor([self.tokenizer.convert_tokens_to_ids(modality_token)],
+                                                                 dtype=torch.long), data_dict['input_ids'][1:]], 0)
+                data_dict['labels'] = torch.cat(
+                    [data_dict['labels'][:1], torch.tensor([IGNORE_INDEX], dtype=torch.long), data_dict['labels'][1:]], 0)
 
-            # image exist in the data
-        if 'image' in self.list_data_dict[i] or 'video' in self.list_data_dict[i]:
-            data_dict['image'] = image
-            data_dict['image_size'] = image_size
-        elif self.data_args.is_multimodal:
-            # image does not exist in the data, but the model is multimodal
-            crop_size = self.data_args.image_processor.crop_size
-            data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
-            data_dict['image_size'] = (crop_size['width'], crop_size['height'])
+                # image exist in the data
+            if 'image' in self.list_data_dict[i] or 'video' in self.list_data_dict[i]:
+                data_dict['image'] = image
+                data_dict['image_size'] = image_size
+            elif self.data_args.is_multimodal:
+                # image does not exist in the data, but the model is multimodal
+                crop_size = self.data_args.image_processor.crop_size
+                data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
+                data_dict['image_size'] = (crop_size['width'], crop_size['height'])
+        except Exception as e:
+            print(e)
+            print(self.list_data_dict[i])
+            return self.__getitem__(i + 1)
         return data_dict
 
 
@@ -1121,6 +1125,19 @@ def train():
         else:
             conversation_lib.default_conversation = conversation_lib.conv_templates["vicuna_v1"]
 
+
+
+    training_args.freeze_vision=model.config.freeze_vision=model_args.freeze_vision
+    model.config.input_image_size=model_args.input_image_size
+    model.config.is_multipath_encoder=model_args.is_multipath_encoder
+    model.config.vision_tower_slow=model_args.vision_tower_slow
+    model.config.image_aspect_ratio = data_args.image_aspect_ratio
+    model.config.image_grid_pinpoints = data_args.image_grid_pinpoints
+    model.config.video_frame= data_args.video_frame
+    model.config.tune_mm_mlp_adapter = training_args.tune_mm_mlp_adapter = model_args.tune_mm_mlp_adapter
+    model.config.freeze_mm_mlp_adapter = training_args.freeze_mm_mlp_adapter
+    model.config.model_name_or_path = model_args.model_name_or_path
+
     if model_args.vision_tower is not None and not ('llava' in model_args.model_name_or_path):
         model.get_model().initialize_vision_modules(
             model_args=model_args,
@@ -1133,14 +1150,6 @@ def train():
         data_args.image_processor = vision_tower.image_processor
         data_args.is_multimodal = True
 
-        training_args.freeze_vision=model.config.freeze_vision=model_args.freeze_vision
-        model.config.input_image_size=model_args.input_image_size
-        model.config.is_multipath_encoder=model_args.is_multipath_encoder
-        model.config.vision_tower_slow=model_args.vision_tower_slow
-        model.config.image_aspect_ratio = data_args.image_aspect_ratio
-        model.config.image_grid_pinpoints = data_args.image_grid_pinpoints
-        model.config.video_frame= data_args.video_frame
-        model.config.tune_mm_mlp_adapter = training_args.tune_mm_mlp_adapter = model_args.tune_mm_mlp_adapter
         if model_args.tune_mm_mlp_adapter:
             model.requires_grad_(False)
             for p in model.get_model().mm_projector.parameters():
@@ -1150,7 +1159,7 @@ def train():
             for p in vision_tower.parameters():
                 p.requires_grad = True
 
-        model.config.freeze_mm_mlp_adapter = training_args.freeze_mm_mlp_adapter
+
         if training_args.freeze_mm_mlp_adapter:
             for p in model.get_model().mm_projector.parameters():
                 p.requires_grad = False
@@ -1182,7 +1191,6 @@ def train():
     data_args.is_multimodal = True
     training_args.use_im_start_end = model_args.mm_use_im_start_end
     data_args.mm_use_im_start_end=model_args.mm_use_im_start_end
-    model.config.model_name_or_path = model_args.model_name_or_path
 
     # set lavin
     # data_args.lavin_enable=training_args.lavin_enable

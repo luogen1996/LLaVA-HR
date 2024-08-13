@@ -146,7 +146,7 @@ class MultiPathCLIPVisionTower(nn.Module):
         self.enable_adapter= not args.freeze_vision
         self.image_size=args.input_image_size
         self.stride=2
-        self.enable_pretrain =(not args.tune_mm_mlp_adapter) and  ('llava' not in args._name_or_path)
+        self.enable_pretrain =(not args.tune_mm_mlp_adapter) and  ('llava' not in args.model_name_or_path)
 
         if self.enable_adapter:
             self.align_stages_latent = nn.ModuleList([S2FStitchAlignModuleV2(self.fast_vision_tower.hidden_size,
@@ -154,6 +154,7 @@ class MultiPathCLIPVisionTower(nn.Module):
                                                                              True,
                                                                 init= self.enable_pretrain)
                                                       for i in range(3)])
+
 
         self.align_stages = nn.ModuleList([MultiPathAlignModule(self.fast_vision_tower.hidden_size,
                                                                 self.slow_vision_tower.hidden_size,
@@ -168,19 +169,35 @@ class MultiPathCLIPVisionTower(nn.Module):
 
         self.is_loaded = True
 
+    def visual_process_fast_vision(self,x,target_size):
+        y=x.float()
+        mean_old = torch.tensor(self.slow_vision_tower.image_processor.image_mean).view(1, -1, 1, 1).to(x.device)
+        std_old = torch.tensor(self.slow_vision_tower.image_processor.image_std).view(1, -1, 1, 1).to(x.device)
+        mean_new = torch.tensor(self.fast_vision_tower.image_processor.image_mean).view(1, -1, 1, 1).to(x.device)
+        std_new = torch.tensor(self.fast_vision_tower.image_processor.image_std).view(1, -1, 1, 1).to(x.device)
+        y=y * std_old + mean_old
+        y = F.interpolate(y, size=(target_size, target_size), mode='bilinear', align_corners=True)
+        y = (y - mean_new) / std_new
+        y=y.to(dtype=x.dtype)
+        return y
+
     def forward(self, x):
 
         # fast & slow brach
         fast_blk = self.fast_vision_tower.vision_tower.vision_model.encoder.layers
         slow_blk = self.slow_vision_tower.vision_tower.stages
         n_blks = len(fast_blk) // 4
-        assert len(fast_blk) == n_blks * 4
+        # assert len(fast_blk) == n_blks * 4
 
         # pre-process for fast_vision_towe
         fast_image_size=max(int(self.image_size/32*14),336)
-        y = F.interpolate(x.float(), size=(fast_image_size, fast_image_size), mode='bilinear', align_corners=True).to(dtype=x.dtype)
+
+        y=self.visual_process_fast_vision(x,fast_image_size)
+        # y = F.interpolate(x.float(), size=(fast_image_size, fast_image_size), mode='bilinear', align_corners=True).to(dtype=x.dtype)
+
         y = self.fast_vision_tower.vision_tower.vision_model.embeddings(y)
-        y = self.fast_vision_tower.vision_tower.vision_model.pre_layrnorm(y[:, 1:])
+        if hasattr(self.fast_vision_tower.vision_tower.vision_model,'pre_layrnorm'):
+            y = self.fast_vision_tower.vision_tower.vision_model.pre_layrnorm(y[:, 1:])
 
         # pre-process for slow_vision_tower
         x = self.slow_vision_tower.vision_tower.stem(x)

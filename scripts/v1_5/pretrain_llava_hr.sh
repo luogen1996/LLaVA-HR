@@ -3,17 +3,17 @@ deepspeed llava_hr/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path /data/vicuna/vicuna-7b-v1.5 \
     --version plain \
-    --data_path ./playground/data/mini_gemini_data/Mini-Gemini-Pretrain/minigemini_pretrain_filter_v2_filter_v2_filter_lowres.json \
+    --data_path ./playground/data/mini_gemini_data/Mini-Gemini-Pretrain/minigemini_pretrain_filter_low_res.json \
     --image_folder ./playground/data/mini_gemini_data \
-    --vision_tower openai/clip-vit-large-patch14-336 \
-    --vision_tower_slow convnext_large_mlp.clip_laion2b_ft_320 \
+    --vision_tower google/siglip-so400m-patch14-384 \
+    --vision_tower_slow convnext_xxlarge.clip_laion2b_soup \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir ./checkpoints/llava-hr-7b-pretrain-384-lowres-v2 \
+    --output_dir ./checkpoints/llava-hr-7b-pretrain-384-lowres-v3-siglip_convxxl \
     --num_train_epochs 1 \
     --per_device_train_batch_size 32 \
     --per_device_eval_batch_size 4 \

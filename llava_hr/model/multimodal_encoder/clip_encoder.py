@@ -8,6 +8,8 @@ import torch
 import torch.nn.functional as F
 from typing import List, Optional
 
+from .siglip.image_processing_siglip import SigLipImageProcessor
+from .siglip.modeling_siglip import SiglipVisionModel
 
 def forward_embeddings(self, pixel_values: torch.FloatTensor) -> torch.Tensor:
     batch_size = pixel_values.shape[0]
@@ -81,19 +83,25 @@ class CLIPVisionTower(nn.Module):
 
 
     def load_model(self):
-        self.image_processor = CLIPImageProcessor.from_pretrained(self.vision_tower_name)
-        self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name)
+
+        if 'siglip' in self.vision_tower_name:
+            # "google/siglip-so400m-patch14-384"
+            self.image_processor = SigLipImageProcessor()
+            self.vision_tower = SiglipVisionModel.from_pretrained(self.vision_tower_name)
+        else:
+            self.image_processor = CLIPImageProcessor.from_pretrained(self.vision_tower_name)
+            self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name)
+            cls_ = self.vision_tower.vision_model.embeddings
+            bound_method = forward_embeddings.__get__(cls_, cls_.__class__)
+            setattr(cls_, 'forward', bound_method)
+
         # checkpointing for clip
         self.vision_tower.vision_model.encoder.gradient_checkpointing =True
-
 
 
         if self.freeze_vision:
             self.vision_tower.requires_grad_(False)
 
-        cls_=self.vision_tower.vision_model.embeddings
-        bound_method = forward_embeddings.__get__(cls_, cls_.__class__)
-        setattr(cls_, 'forward', bound_method)
 
         if self.input_image_size is not None:
             self.image_processor.size=self.input_image_size

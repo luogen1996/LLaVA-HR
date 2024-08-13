@@ -37,9 +37,8 @@ class ConvNextVisionTower(nn.Module):
         self.vision_tower_name = vision_tower
         self.select_layer = args.mm_vision_select_layer
         self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')
-        self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')
         # 0401 fix for fine-tune backbone
-        self.enable_pretrain = (not args.tune_mm_mlp_adapter) and  ('llava' not in args._name_or_path)
+        self.enable_pretrain = (not args.tune_mm_mlp_adapter) and  ('llava' not in args.model_name_or_path)
 
         self.load_model()
 
