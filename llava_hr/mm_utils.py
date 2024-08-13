@@ -93,7 +93,7 @@ def select_best_resolution(original_size, possible_resolutions):
     for width, height in possible_resolutions:
         scale = min(width / original_width, height / original_height)
         downscaled_width, downscaled_height = int(original_width * scale), int(original_height * scale)
-        effective_resolution = downscaled_width * downscaled_height#min(downscaled_width * downscaled_height, original_width * original_height)
+        effective_resolution = min(downscaled_width * downscaled_height, original_width * original_height)
         wasted_resolution = (width * height) - effective_resolution
 
         if effective_resolution > max_effective_resolution or (effective_resolution == max_effective_resolution and wasted_resolution < min_wasted_resolution):
