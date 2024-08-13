@@ -161,7 +161,7 @@ def divide_to_patches(image, patch_size):
     return patches
 
 
-def get_anyres_image_grid_shape(image_size, grid_pinpoints, patch_size):
+def get_anyres_image_grid_shape(image_size, grid_pinpoints, patch_size,scale_factor=0.4375):
     """
     Calculate the shape of the image patch grid after the preprocessing for images of any resolution.
 
@@ -177,11 +177,13 @@ def get_anyres_image_grid_shape(image_size, grid_pinpoints, patch_size):
         possible_resolutions = grid_pinpoints
     else:
         possible_resolutions = ast.literal_eval(grid_pinpoints)
+    if scale_factor is not None:
+        image_size=(int(image_size[0]/scale_factor),int(image_size[1]/scale_factor))
     width, height = select_best_resolution(image_size, possible_resolutions)
     return width // patch_size, height // patch_size
 
 
-def process_anyres_image(image, processor, grid_pinpoints):
+def process_anyres_image(image, processor, grid_pinpoints,scale_factor=0.4375):
     """
     Process an image with variable resolutions.
 
@@ -197,17 +199,20 @@ def process_anyres_image(image, processor, grid_pinpoints):
         possible_resolutions = grid_pinpoints
     else:
         possible_resolutions = ast.literal_eval(grid_pinpoints)
-    best_resolution = select_best_resolution(image.size, possible_resolutions)
-    # print(best_resolution)
+
+    if scale_factor is not None:
+        scaled_size=(int(image.size[0]/scale_factor),int(image.size[1]/scale_factor))
+    else:
+        scaled_size=image.size
+    best_resolution = select_best_resolution(scaled_size, possible_resolutions)
+
     image_padded = resize_and_pad_image(image, best_resolution)
 
     patches = divide_to_patches(image_padded, processor.size)
-    # print(len(patches))
-    # print(processor.size)
-    # import pdb
-    # pdb.set_trace()
+
+
     image_original_resize = image.resize((processor.size, processor.size))
-    #expand2square(image, tuple(int(x * 255) for x in processor.image_mean))
+
     image_patches = [image_original_resize] + patches
     image_patches = [processor.preprocess(image_patch, return_tensors='pt')['pixel_values'][0]
                      for image_patch in image_patches]
