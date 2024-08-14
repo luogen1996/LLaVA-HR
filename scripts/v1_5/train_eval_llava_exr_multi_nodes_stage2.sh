@@ -1,14 +1,11 @@
 #!/bin/bash
 export BNB_CUDA_VERSION=117
 
-cd /data/luogen_code/LLaVA-EXR-4.31.0
+cd /data/luogen_code/LLaVA-HR
 
 deepspeed --num_nodes 13 --num_gpus 8  --master_addr 10.24.116.46 --master_port=2347 --hostfile=./hostfile.txt \
     llava_hr/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
-    --tune_mm_mlp_adapter True \
-    --freeze_backbone True \
-    --freeze_vision True \
     --model_name_or_path /mnt/82_store/luogen/vicuna-7b-v1.5/ \
     --version v1 \
     --data_path /mnt/82_store/luogen/minigemini_pretrain_filter_highres_ocr_pdf_tcap.json \
@@ -32,7 +29,7 @@ deepspeed --num_nodes 13 --num_gpus 8  --master_addr 10.24.116.46 --master_port=
     --save_strategy "steps" \
     --save_steps 50000 \
     --save_total_limit 1 \
-    --learning_rate 2e-5 \
+    --learning_rate 4e-5 \
     --weight_decay 0. \
     --warmup_ratio 0.03 \
     --lr_scheduler_type "cosine" \
