@@ -71,15 +71,27 @@ class LlavaMetaModel:
 
         if pretrain_mm_mlp_adapter is not None:
             mm_projector_weights = torch.load(pretrain_mm_mlp_adapter, map_location='cpu')
-            def get_w(weights, keyword):
-                return {k.split(keyword + '.')[1]: v for k, v in weights.items() if keyword in k}
+            
+            # 过滤条件：只保留名称中包含 'projector' 的参数
+            mm_projector_weights = {
+                k[19:]: v for k, v in mm_projector_weights.items() if 'projector' in k
+            }
+            # for name, param in mm_projector_weights.items():
+            #     print("mmprj", name, param.shape)
+            
+            # def get_w(weights, keyword):
+            #     return {k.split(keyword + '.')[1]: v for k, v in weights.items() if keyword in k}
 
-            self.mm_projector.load_state_dict(get_w(mm_projector_weights, 'mm_projector'))
-
-            if model_args.is_multipath_encoder:
-                w_=get_w(mm_projector_weights, 'vision_tower')
-                print(w_.keys())
-                self.vision_tower.load_state_dict(w_,strict=False)
+            # self.mm_projector.load_state_dict(get_w(mm_projector_weights, 'mm_projector'))
+            from deepspeed import zero
+            with zero.GatheredParameters(list(self.mm_projector.parameters())):
+                msg = self.mm_projector.load_state_dict(mm_projector_weights)
+                print("load mm_projecter from{}: {}".format(pretrain_mm_mlp_adapter, msg))
+            ##TODO: unify mm projecter initialization and vision tower initialization
+            # if model_args.is_multipath_encoder:
+            #     w_=get_w(mm_projector_weights, 'vision_tower')
+            #     print(w_.keys())
+            #     self.vision_tower.load_state_dict(w_,strict=False)
 
 
 class LlavaMetaForCausalLM(ABC):

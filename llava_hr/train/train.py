@@ -63,7 +63,7 @@ class ModelArguments:
     mm_vision_select_feature: Optional[str] = field(default="patch")
     is_multipath_encoder: bool = field(default=False)
     vision_tower_slow: Optional[str] = field(default='convnext_large_mlp.clip_laion2b_ft_320')
-
+    vision_tower_checkpoint: Optional[str] = field(default=None)
 
 @dataclass
 class DataArguments:
